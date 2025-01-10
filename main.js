@@ -13,15 +13,19 @@ function addMarker(lat, lng, name) {
 }
 
 // Funzione per caricare i dati di Accessibility Cloud
-fetch('https://api.accessibility.cloud/v1/places?bbox=9.0600,45.3900,9.2900,45.5300&access_token=7178cfee53eac8f159d6fe5db189d112')
+fetch('https://accessibility-cloud.freetls.fastly.net/place-infos?appToken=7178cfee53eac8f159d6fe5db189d112&latitude=45.4642&longitude=9.1900&accuracy=1000')
   .then(response => response.json())
   .then(data => {
-    // Itera sui dati e aggiungi marker
-    data.places.forEach((place) => {
-      const lat = place.location.latitude;
-      const lng = place.location.longitude;
-      const name = place.name || 'Punto di interesse';
-      addMarker(lat, lng, name);
-    });
+    console.log(data); // Stampa i dati per debug
+    if (data.length > 0) {
+      data.forEach((place) => {
+        const lat = place.location.latitude;
+        const lng = place.location.longitude;
+        const name = place.name || 'Punto di interesse';
+        addMarker(lat, lng, name);
+      });
+    } else {
+      console.warn('Nessun dato trovato.');
+    }
   })
   .catch(error => console.error('Errore nel caricamento dei dati:', error));
