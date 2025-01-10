@@ -13,26 +13,15 @@ function addMarker(lat, lng, name) {
 }
 
 // Funzione per caricare i dati di Accessibility Cloud
-window.onAccessibilityCloudLoaded = function (AccessibilityCloud) {
-  var element = document.querySelector('#accessibility-cloud-results');
-  AccessibilityCloud.render(element, {
-    token: '7178cfee53eac8f159d6fe5db189d112',
-    locale: 'it_IT',
-    requestParameters: {
-      latitude: 45.4642, // Milano
-      longitude: 9.1900,
-      accuracy: 1000, // Raggio di ricerca in metri
-      limit: 20, // Numero massimo di risultati
-      filter: 'at-least-partially-accessible-by-wheelchair',
-    },
-    onDataLoaded: (data) => {
-      // Itera sui dati e aggiungi marker
-      data.places.forEach((place) => {
-        const lat = place.location.latitude;
-        const lng = place.location.longitude;
-        const name = place.name || 'Punto di interesse';
-        addMarker(lat, lng, name);
-      });
-    },
-  });
-};
+fetch('https://api.accessibility.cloud/v1/places?bbox=9.0600,45.3900,9.2900,45.5300&access_token=7178cfee53eac8f159d6fe5db189d112')
+  .then(response => response.json())
+  .then(data => {
+    // Itera sui dati e aggiungi marker
+    data.places.forEach((place) => {
+      const lat = place.location.latitude;
+      const lng = place.location.longitude;
+      const name = place.name || 'Punto di interesse';
+      addMarker(lat, lng, name);
+    });
+  })
+  .catch(error => console.error('Errore nel caricamento dei dati:', error));

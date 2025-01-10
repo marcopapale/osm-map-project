@@ -5,24 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OpenStreetMap with Accessibility Data</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sozialhelden/accessibility-cloud-js@3.2.1/build/example/accessibility.cloud-3.2.1-2350f78a.css">
   <style>
     #map {
-      height: 60vh; /* Mappa visibile solo in alto */
+      height: 100vh; /* Full-screen map */
       margin: 0;
-    }
-    #accessibility-cloud-results {
-      height: 40vh; /* Spazio per i risultati sotto la mappa */
-      overflow-y: auto;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
-  <div id="accessibility-cloud-results"></div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="main.js"></script>
-  <script type="text/javascript" async defer src="https://cdn.jsdelivr.net/gh/sozialhelden/accessibility-cloud-js@3.2.1/build/example/accessibility.cloud-3.2.1-21a6710d.min.js"></script>
 </body>
 </html>
