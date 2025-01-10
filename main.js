@@ -7,9 +7,21 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap contributors',
 }).addTo(map);
 
+// Icona personalizzata per i luoghi accessibili
+const wheelchairIcon = L.icon({
+  iconUrl: 'https://example.com/wheelchair-icon.png', // Sostituisci con il link dell'icona desiderata
+  iconSize: [32, 32], // Dimensione dell'icona
+  iconAnchor: [16, 32], // Punto di ancoraggio dell'icona
+  popupAnchor: [0, -32], // Punto di ancoraggio del popup rispetto all'icona
+});
+
 // Funzione per aggiungere marker sulla mappa
-function addMarker(lat, lng, name) {
-  L.marker([lat, lng]).addTo(map).bindPopup(`<strong>${name}</strong>`);
+function addMarker(lat, lng, name, category) {
+  L.marker([lat, lng], { icon: wheelchairIcon }).addTo(map).bindPopup(
+    `<strong>${name}</strong><br>
+    Categoria: ${category || 'N/A'}<br>
+    <span style='color: red;'>Accessibile</span>`
+  );
 }
 
 // URL dell'Overpass API con query per luoghi accessibili
@@ -24,7 +36,8 @@ fetch(overpassUrl)
       const lat = element.lat;
       const lng = element.lon;
       const name = element.tags.name || "Luogo accessibile";
-      addMarker(lat, lng, name);
+      const category = element.tags.amenity || "Non specificata";
+      addMarker(lat, lng, name, category);
     });
   })
   .catch((error) => console.error("Errore nel caricamento dei dati dall'Overpass API:", error));
