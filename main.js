@@ -12,7 +12,7 @@ function addMarker(lat, lng, name) {
   L.marker([lat, lng]).addTo(map).bindPopup(`<strong>${name}</strong>`);
 }
 
-// Chiamata API per ottenere i POI
+// Chiamata API per ottenere i POI direttamente senza proxy
 const apiUrl = 'https://accessibility-cloud.freetls.fastly.net/place-infos';
 const params = {
   appToken: '7178cfee53eac8f159d6fe5db189d112',
