@@ -12,14 +12,28 @@ function addMarker(lat, lng, name) {
   L.marker([lat, lng]).addTo(map).bindPopup(`<strong>${name}</strong>`);
 }
 
-// Usa un proxy per aggirare il problema CORS
-const proxy = 'https://cors-anywhere.herokuapp.com/';
-const apiUrl = 'https://accessibility-cloud.freetls.fastly.net/place-infos?appToken=7178cfee53eac8f159d6fe5db189d112&latitude=45.4642&longitude=9.1900&accuracy=1000';
+// Chiamata API per ottenere i POI
+const apiUrl = 'https://accessibility-cloud.freetls.fastly.net/place-infos';
+const params = {
+  appToken: '7178cfee53eac8f159d6fe5db189d112',
+  latitude: 45.4642,
+  longitude: 9.1900,
+  accuracy: 1000, // 1 km di raggio
+};
 
-fetch(proxy + apiUrl)
-  .then(response => response.json())
-  .then(data => {
-    console.log(data); // Stampa i dati per debug
+// Costruisci l'URL con i parametri
+const url = `${apiUrl}?${new URLSearchParams(params).toString()}`;
+
+// Effettua la chiamata API
+fetch(url)
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error(`Errore nella richiesta: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then((data) => {
+    console.log(data); // Debug: stampa i dati
     if (data.length > 0) {
       data.forEach((place) => {
         const lat = place.location.latitude;
@@ -28,7 +42,7 @@ fetch(proxy + apiUrl)
         addMarker(lat, lng, name);
       });
     } else {
-      console.warn('Nessun dato trovato.');
+      console.warn('Nessun luogo trovato.');
     }
   })
-  .catch(error => console.error('Errore nel caricamento dei dati:', error));
+  .catch((error) => console.error('Errore nel caricamento dei dati:', error));
