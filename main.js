@@ -24,7 +24,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 // Icona personalizzata per i luoghi accessibili
 const wheelchairIcon = L.icon({
-  iconUrl: 'https://example.com/wheelchair-icon.png', // Sostituisci con il link dell'icona desiderata
+  iconUrl: 'https://github.com/marcopapale/osm-map-project/blob/main/wheel.png?raw=true', // Sostituisci con il link dell'icona desiderata
   iconSize: [32, 32], // Dimensione dell'icona
   iconAnchor: [16, 32], // Punto di ancoraggio dell'icona
   popupAnchor: [0, -32], // Punto di ancoraggio del popup rispetto all'icona
