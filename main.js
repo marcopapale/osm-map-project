@@ -12,7 +12,7 @@ function addMarker(lat, lng, name) {
   L.marker([lat, lng]).addTo(map).bindPopup(`<strong>${name}</strong>`);
 }
 
-// Chiamata API per ottenere i POI direttamente senza proxy
+// Chiamata API per ottenere i POI direttamente con debug
 const apiUrl = 'https://accessibility-cloud.freetls.fastly.net/place-infos';
 const params = {
   appToken: '7178cfee53eac8f159d6fe5db189d112',
@@ -24,7 +24,7 @@ const params = {
 // Costruisci l'URL con i parametri
 const url = `${apiUrl}?${new URLSearchParams(params).toString()}`;
 
-// Effettua la chiamata API
+// Effettua la chiamata API con modalità debug
 fetch(url)
   .then((response) => {
     if (!response.ok) {
@@ -33,7 +33,7 @@ fetch(url)
     return response.json();
   })
   .then((data) => {
-    console.log(data); // Debug: stampa i dati
+    console.log('Dati ricevuti dalla API:', data); // Debug: stampa i dati
     if (data.length > 0) {
       data.forEach((place) => {
         const lat = place.location.latitude;
