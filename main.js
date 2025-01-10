@@ -1,4 +1,3 @@
-
 // Aggiungi barra di ricerca e filtro nella mappa
 document.body.insertAdjacentHTML('beforeend', `
   <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1000; background: white; padding: 10px; border-radius: 25px; display: flex; align-items: center; gap: 10px; box-shadow: 0px 2px 6px rgba(0,0,0,0.3);">
@@ -52,9 +51,13 @@ function addMarker(lat, lng, name, category) {
   return marker;
 }
 
-// Funzione per caricare POI in base alle coordinate e categoria
-function loadPOIs(lat, lng, categoryFilter = "") {
-  const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json][timeout:25];node["wheelchair"="yes"]${categoryFilter ? `["amenity"="${categoryFilter}"]` : ""}(${lat - 0.05},${lng - 0.05},${lat + 0.05},${lng + 0.05});out body;`;
+// Funzione per caricare POI in base alle coordinate e categoria selezionata
+function loadPOIs(lat, lng, selectedCategory = "") {
+  const categoryFilter = selectedCategory
+    ? `node["wheelchair"="yes"]["amenity"="${selectedCategory}"]`
+    : 'node["wheelchair"="yes"]';
+
+  const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json][timeout:25];${categoryFilter}(${lat - 0.05},${lng - 0.05},${lat + 0.05},${lng + 0.05});out body;`;
 
   fetch(overpassUrl)
     .then((response) => response.json())
@@ -82,9 +85,10 @@ function loadPOIs(lat, lng, categoryFilter = "") {
 // Funzione per popolare dinamicamente il filtro delle categorie
 function populateCategories(categories) {
   const categoryFilter = document.getElementById('categoryFilter');
+  const currentSelection = categoryFilter.value;
   categoryFilter.innerHTML = '<option value="">Tutte le categorie</option>';
   categories.forEach((category) => {
-    categoryFilter.innerHTML += `<option value="${category}">${category.charAt(0).toUpperCase() + category.slice(1)}</option>`;
+    categoryFilter.innerHTML += `<option value="${category}" ${currentSelection === category ? 'selected' : ''}>${category.charAt(0).toUpperCase() + category.slice(1)}</option>`;
   });
 }
 
@@ -108,10 +112,16 @@ document.getElementById('searchButton').addEventListener('click', () => {
       const { lat, lon } = data[0];
       map.setView([lat, lon], 17);
 
-      // Carica nuovi POI filtrati
       loadPOIs(lat, lon, categoryFilter);
     })
     .catch((error) => console.error("Errore nel geocoding:", error));
+});
+
+// Aggiungi evento per il filtro delle categorie
+document.getElementById('categoryFilter').addEventListener('change', () => {
+  const categoryFilter = document.getElementById('categoryFilter').value;
+  const center = map.getCenter();
+  loadPOIs(center.lat, center.lng, categoryFilter);
 });
 
 // Aggiungi evento per il tasto Invio nella barra di ricerca
@@ -119,16 +129,4 @@ document.getElementById('searchInput').addEventListener('keypress', (event) => {
   if (event.key === 'Enter') {
     document.getElementById('searchButton').click();
   }
-});
-
-// Aggiungi evento per il filtro delle categorie
-document.getElementById('categoryFilter').addEventListener('change', () => {
-  const categoryFilter = document.getElementById('categoryFilter').value;
-  if (categoryFilter === '') {
-    const center = map.getCenter();
-    loadPOIs(center.lat, center.lng);
-    return;
-  }
-  const center = map.getCenter();
-  loadPOIs(center.lat, center.lng, categoryFilter);
 });
