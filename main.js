@@ -126,12 +126,6 @@ document.getElementById('searchInput').addEventListener('keypress', (event) => {
 // Aggiungi evento per il filtro delle categorie
 document.getElementById('categoryFilter').addEventListener('change', () => {
   const categoryFilter = document.getElementById('categoryFilter').value;
-  if (categoryFilter === '') {
-    const center = map.getCenter();
-    loadPOIs(center.lat, center.lng);
-    return;
-  }
-  const categoryFilter = document.getElementById('categoryFilter').value;
   const center = map.getCenter();
   loadPOIs(center.lat, center.lng, categoryFilter);
 });
