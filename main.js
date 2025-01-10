@@ -1,3 +1,4 @@
+
 // Importa FontAwesome per le icone
 const script = document.createElement('script');
 script.src = "https://kit.fontawesome.com/a076d05399.js";
@@ -28,11 +29,6 @@ const wheelchairIcon = L.divIcon({
   iconAnchor: [16, 32],
   popupAnchor: [0, -32],
 });
-
-if (!document.querySelector('.fas.fa-wheelchair')) {
-  console.error("FontAwesome non è stato caricato correttamente.");
-}
-
 
 // Funzione per aggiungere marker sulla mappa
 function addMarker(lat, lng, name, category) {
