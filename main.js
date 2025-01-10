@@ -1,11 +1,12 @@
+
 // Aggiungi barra di ricerca e filtro nella mappa
 document.body.insertAdjacentHTML('beforeend', `
   <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1000; background: white; padding: 10px; border-radius: 25px; display: flex; align-items: center; gap: 10px; box-shadow: 0px 2px 6px rgba(0,0,0,0.3);">
     <input id="searchInput" type="text" placeholder="Cerca un indirizzo" style="flex: 1; border: none; outline: none; padding: 8px; font-size: 14px; border-radius: 25px;">
     <button id="searchButton" style="padding: 8px 16px; background: #007bff; color: white; border: none; outline: none; cursor: pointer; border-radius: 25px; transition: background-color 0.3s ease;">Cerca</button>
-    <div id="categoryFilter" style="display: flex; flex-wrap: wrap; gap: 5px;">
-      <!-- Categorie dinamiche inserite qui -->
-    </div>
+    <select id="categoryFilter" style="padding: 8px; border-radius: 25px; border: 1px solid #ccc;">
+      <option value="">Tutte le categorie</option>
+    </select>
   </div>
 `);
 
@@ -51,13 +52,9 @@ function addMarker(lat, lng, name, category) {
   return marker;
 }
 
-// Funzione per caricare POI in base alle coordinate e categorie selezionate
-function loadPOIs(lat, lng, selectedCategories = []) {
-  const categoryFilter = selectedCategories.length > 0
-    ? selectedCategories.map(cat => `node["wheelchair"="yes"]["amenity"="${cat}"]`).join(';')
-    : 'node["wheelchair"="yes"]';
-
-  const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json][timeout:25];${categoryFilter}(${lat - 0.05},${lng - 0.05},${lat + 0.05},${lng + 0.05});out body;`;
+// Funzione per caricare POI in base alle coordinate e categoria
+function loadPOIs(lat, lng, categoryFilter = "") {
+  const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json][timeout:25];node["wheelchair"="yes"]${categoryFilter ? `["amenity"="${categoryFilter}"]` : ""}(${lat - 0.05},${lng - 0.05},${lat + 0.05},${lng + 0.05});out body;`;
 
   fetch(overpassUrl)
     .then((response) => response.json())
@@ -85,26 +82,9 @@ function loadPOIs(lat, lng, selectedCategories = []) {
 // Funzione per popolare dinamicamente il filtro delle categorie
 function populateCategories(categories) {
   const categoryFilter = document.getElementById('categoryFilter');
-  categoryFilter.innerHTML = '';
+  categoryFilter.innerHTML = '<option value="">Tutte le categorie</option>';
   categories.forEach((category) => {
-    const categoryElement = document.createElement('label');
-    categoryElement.style.cssText = 'padding: 5px 10px; background: #f0f0f0; border-radius: 25px; cursor: pointer;';
-
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.value = category;
-    checkbox.style.marginRight = '5px';
-
-    categoryElement.appendChild(checkbox);
-    categoryElement.appendChild(document.createTextNode(category.charAt(0).toUpperCase() + category.slice(1)));
-
-    categoryFilter.appendChild(categoryElement);
-
-    checkbox.addEventListener('change', () => {
-      const selectedCategories = Array.from(categoryFilter.querySelectorAll('input[type=checkbox]:checked')).map(cb => cb.value);
-      const center = map.getCenter();
-      loadPOIs(center.lat, center.lng, selectedCategories);
-    });
+    categoryFilter.innerHTML += `<option value="${category}">${category.charAt(0).toUpperCase() + category.slice(1)}</option>`;
   });
 }
 
@@ -114,6 +94,7 @@ loadPOIs(45.4642, 9.1900);
 // Aggiungi evento per il pulsante di ricerca
 document.getElementById('searchButton').addEventListener('click', () => {
   const address = document.getElementById('searchInput').value;
+  const categoryFilter = document.getElementById('categoryFilter').value;
   if (!address) return alert('Inserisci un indirizzo.');
 
   // Usa un servizio geocoding per trovare le coordinate dell'indirizzo
@@ -127,8 +108,8 @@ document.getElementById('searchButton').addEventListener('click', () => {
       const { lat, lon } = data[0];
       map.setView([lat, lon], 17);
 
-      const selectedCategories = Array.from(document.querySelectorAll('#categoryFilter input[type=checkbox]:checked')).map(cb => cb.value);
-      loadPOIs(lat, lon, selectedCategories);
+      // Carica nuovi POI filtrati
+      loadPOIs(lat, lon, categoryFilter);
     })
     .catch((error) => console.error("Errore nel geocoding:", error));
 });
@@ -138,4 +119,16 @@ document.getElementById('searchInput').addEventListener('keypress', (event) => {
   if (event.key === 'Enter') {
     document.getElementById('searchButton').click();
   }
+});
+
+// Aggiungi evento per il filtro delle categorie
+document.getElementById('categoryFilter').addEventListener('change', () => {
+  const categoryFilter = document.getElementById('categoryFilter').value;
+  if (categoryFilter === '') {
+    const center = map.getCenter();
+    loadPOIs(center.lat, center.lng);
+    return;
+  }
+  const center = map.getCenter();
+  loadPOIs(center.lat, center.lng, categoryFilter);
 });
