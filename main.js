@@ -13,7 +13,7 @@ function addMarker(lat, lng, name) {
 }
 
 // Ottieni dati dall'API
-fetch('https://api.accessibility.cloud/v1/places?bbox=9.0600,45.3900,9.2900,45.5300&access_token=7178cfee53eac8f159d6fe5db189d112')
+fetch('https://accessibility-cloud.freetls.fastly.net/place-infos?latitude=48.251&longitude=16.5&accuracy=10000\&appToken=7178cfee53eac8f159d6fe5db189d112')
   .then(response => response.json())
   .then(data => {
     // Itera sui dati e aggiungi marker
