@@ -1,9 +1,3 @@
-
-// Importa FontAwesome per le icone
-const script = document.createElement('script');
-script.src = "https://kit.fontawesome.com/a076d05399.js";
-document.head.appendChild(script);
-
 // Aggiungi barra di ricerca nella mappa
 document.body.insertAdjacentHTML('beforeend', `
   <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1000; background: white; padding: 10px; border-radius: 25px; display: flex; align-items: center; box-shadow: 0px 2px 6px rgba(0,0,0,0.3);">
@@ -13,7 +7,7 @@ document.body.insertAdjacentHTML('beforeend', `
 `);
 
 // Focalizza la mappa su Milano con maggiore livello di zoom
-const map = L.map('map').setView([45.4642, 9.1900], 15);
+const map = L.map('map').setView([45.4642, 9.1900], 16);
 
 // Aggiungi il layer OpenStreetMap
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -21,13 +15,12 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap contributors',
 }).addTo(map);
 
-// Icona personalizzata per i luoghi accessibili con FontAwesome
-const wheelchairIcon = L.divIcon({
-  html: '<i class="fas fa-wheelchair" style="color: green; font-size: 24px;"></i>',
-  className: 'custom-div-icon',
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32],
+// Icona personalizzata per i luoghi accessibili
+const wheelchairIcon = L.icon({
+  iconUrl: 'https://example.com/wheelchair-icon.png', // Sostituisci con il link dell'icona desiderata
+  iconSize: [32, 32], // Dimensione dell'icona
+  iconAnchor: [16, 32], // Punto di ancoraggio dell'icona
+  popupAnchor: [0, -32], // Punto di ancoraggio del popup rispetto all'icona
 });
 
 // Funzione per aggiungere marker sulla mappa
@@ -39,23 +32,27 @@ function addMarker(lat, lng, name, category) {
   );
 }
 
-// URL dell'Overpass API con query per luoghi accessibili
-const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json][timeout:25];node["wheelchair"="yes"](45.40,9.10,45.50,9.30);out body;`;
+// Funzione per caricare POI in base alle coordinate
+function loadPOIs(lat, lng) {
+  const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json][timeout:25];node["wheelchair"="yes"](${lat - 0.05},${lng - 0.05},${lat + 0.05},${lng + 0.05});out body;`;
 
-// Effettua la chiamata API
-fetch(overpassUrl)
-  .then((response) => response.json())
-  .then((data) => {
-    console.log("Dati ricevuti dall'Overpass API:", data);
-    data.elements.forEach((element) => {
-      const lat = element.lat;
-      const lng = element.lon;
-      const name = element.tags.name || "Luogo accessibile";
-      const category = element.tags.amenity || "Non specificata";
-      addMarker(lat, lng, name, category);
-    });
-  })
-  .catch((error) => console.error("Errore nel caricamento dei dati dall'Overpass API:", error));
+  fetch(overpassUrl)
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("Dati ricevuti dall'Overpass API:", data);
+      data.elements.forEach((element) => {
+        const lat = element.lat;
+        const lng = element.lon;
+        const name = element.tags.name || "Luogo accessibile";
+        const category = element.tags.amenity || "Non specificata";
+        addMarker(lat, lng, name, category);
+      });
+    })
+    .catch((error) => console.error("Errore nel caricamento dei dati dall'Overpass API:", error));
+}
+
+// Carica i POI iniziali
+loadPOIs(45.4642, 9.1900);
 
 // Aggiungi evento per il pulsante di ricerca
 document.getElementById('searchButton').addEventListener('click', () => {
@@ -71,7 +68,24 @@ document.getElementById('searchButton').addEventListener('click', () => {
       if (data.length === 0) return alert('Indirizzo non trovato.');
 
       const { lat, lon } = data[0];
-      map.setView([lat, lon], 15);
+      map.setView([lat, lon], 16);
+
+      // Rimuovi i marker esistenti
+      map.eachLayer((layer) => {
+        if (layer instanceof L.Marker) {
+          map.removeLayer(layer);
+        }
+      });
+
+      // Carica nuovi POI
+      loadPOIs(lat, lon);
     })
     .catch((error) => console.error("Errore nel geocoding:", error));
+});
+
+// Aggiungi evento per il tasto Invio nella barra di ricerca
+document.getElementById('searchInput').addEventListener('keypress', (event) => {
+  if (event.key === 'Enter') {
+    document.getElementById('searchButton').click();
+  }
 });
