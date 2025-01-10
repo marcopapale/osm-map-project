@@ -45,7 +45,7 @@ function addMarker(lat, lng, name, category) {
   const marker = L.marker([lat, lng], { icon: wheelchairIcon }).addTo(map);
   marker.bindPopup(
     `<div style='position: relative;'>
-      <button style='position: absolute; top: -10px; right: -10px; width: 20px; height: 20px; background: red; color: white; border: none; border-radius: 50%; cursor: pointer;' onclick='this.parentElement.parentElement.closePopup()'>×</button>
+      <button style='position: absolute; top: -10px; right: -10px; width: 20px; height: 20px; background: red; color: white; border: none; border-radius: 50%; cursor: pointer;' onclick='map.closePopup()'>×</button>
       <strong>${name}</strong><br>
       Categoria: ${category || 'N/A'}<br>
       <span style='color: red;'>Accessibile</span>
@@ -125,6 +125,12 @@ document.getElementById('searchInput').addEventListener('keypress', (event) => {
 
 // Aggiungi evento per il filtro delle categorie
 document.getElementById('categoryFilter').addEventListener('change', () => {
+  const categoryFilter = document.getElementById('categoryFilter').value;
+  if (categoryFilter === '') {
+    const center = map.getCenter();
+    loadPOIs(center.lat, center.lng);
+    return;
+  }
   const categoryFilter = document.getElementById('categoryFilter').value;
   const center = map.getCenter();
   loadPOIs(center.lat, center.lng, categoryFilter);
