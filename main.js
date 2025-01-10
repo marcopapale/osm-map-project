@@ -12,8 +12,11 @@ function addMarker(lat, lng, name) {
   L.marker([lat, lng]).addTo(map).bindPopup(`<strong>${name}</strong>`);
 }
 
-// Funzione per caricare i dati di Accessibility Cloud
-fetch('https://accessibility-cloud.freetls.fastly.net/place-infos?appToken=7178cfee53eac8f159d6fe5db189d112&latitude=45.4642&longitude=9.1900&accuracy=1000')
+// Usa un proxy per aggirare il problema CORS
+const proxy = 'https://cors-anywhere.herokuapp.com/';
+const apiUrl = 'https://accessibility-cloud.freetls.fastly.net/place-infos?appToken=7178cfee53eac8f159d6fe5db189d112&latitude=45.4642&longitude=9.1900&accuracy=1000';
+
+fetch(proxy + apiUrl)
   .then(response => response.json())
   .then(data => {
     console.log(data); // Stampa i dati per debug
