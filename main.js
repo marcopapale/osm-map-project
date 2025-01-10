@@ -1,3 +1,4 @@
+
 // Aggiungi barra di ricerca e filtro nella mappa
 document.body.insertAdjacentHTML('beforeend', `
   <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1000; background: white; padding: 10px; border-radius: 25px; display: flex; align-items: center; gap: 10px; box-shadow: 0px 2px 6px rgba(0,0,0,0.3);">
@@ -44,12 +45,9 @@ const wheelchairIcon = L.icon({
 function addMarker(lat, lng, name, category) {
   const marker = L.marker([lat, lng], { icon: wheelchairIcon }).addTo(map);
   marker.bindPopup(
-    `<div style='position: relative;'>
-      <button style='position: absolute; top: -10px; right: -10px; width: 20px; height: 20px; background: red; color: white; border: none; border-radius: 50%; cursor: pointer;' onclick='this.parentElement.parentElement.closePopup()'>×</button>
-      <strong>${name}</strong><br>
+    `<strong>${name}</strong><br>
       Categoria: ${category || 'N/A'}<br>
-      <span style='color: red;'>Accessibile</span>
-    </div>`
+      <span style='color: red;'>Accessibile</span>`
   );
   return marker;
 }
@@ -126,6 +124,11 @@ document.getElementById('searchInput').addEventListener('keypress', (event) => {
 // Aggiungi evento per il filtro delle categorie
 document.getElementById('categoryFilter').addEventListener('change', () => {
   const categoryFilter = document.getElementById('categoryFilter').value;
+  if (categoryFilter === '') {
+    const center = map.getCenter();
+    loadPOIs(center.lat, center.lng);
+    return;
+  }
   const center = map.getCenter();
   loadPOIs(center.lat, center.lng, categoryFilter);
 });
