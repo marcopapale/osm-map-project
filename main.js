@@ -12,8 +12,8 @@ function addMarker(lat, lng, name) {
   L.marker([lat, lng]).addTo(map).bindPopup(`<strong>${name}</strong>`);
 }
 
-// Esempio: Ottieni dati dall'API
-fetch('https://accessibility-cloud-url-endpoint') // Sostituisci con l'URL API reale
+// Ottieni dati dall'API
+fetch('https://api.accessibility.cloud/v1/places?bbox=9.0600,45.3900,9.2900,45.5300&access_token=7178cfee53eac8f159d6fe5db189d112')
   .then(response => response.json())
   .then(data => {
     // Itera sui dati e aggiungi marker
