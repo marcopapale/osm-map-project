@@ -29,6 +29,11 @@ const wheelchairIcon = L.divIcon({
   popupAnchor: [0, -32],
 });
 
+if (!document.querySelector('.fas.fa-wheelchair')) {
+  console.error("FontAwesome non è stato caricato correttamente.");
+}
+
+
 // Funzione per aggiungere marker sulla mappa
 function addMarker(lat, lng, name, category) {
   L.marker([lat, lng], { icon: wheelchairIcon }).addTo(map).bindPopup(
