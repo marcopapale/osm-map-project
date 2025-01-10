@@ -12,7 +12,7 @@ function addMarker(lat, lng, name) {
   L.marker([lat, lng]).addTo(map).bindPopup(`<strong>${name}</strong>`);
 }
 
-// Chiamata API per ottenere i POI direttamente con debug
+// Chiamata API per ottenere i POI direttamente senza proxy
 const apiUrl = 'https://accessibility-cloud.freetls.fastly.net/place-infos';
 const params = {
   appToken: '7178cfee53eac8f159d6fe5db189d112',
@@ -24,25 +24,17 @@ const params = {
 // Costruisci l'URL con i parametri
 const url = `${apiUrl}?${new URLSearchParams(params).toString()}`;
 
-// Effettua la chiamata API con modalità debug
+// Effettua la chiamata API
 fetch(url)
   .then((response) => {
+    console.log("Risposta API:", response);
     if (!response.ok) {
-      throw new Error(`Errore nella richiesta: ${response.status}`);
+      throw new Error(`Errore nella richiesta: ${response.status} ${response.statusText}`);
     }
     return response.json();
   })
   .then((data) => {
-    console.log('Dati ricevuti dalla API:', data); // Debug: stampa i dati
-    if (data.length > 0) {
-      data.forEach((place) => {
-        const lat = place.location.latitude;
-        const lng = place.location.longitude;
-        const name = place.name || 'Punto di interesse';
-        addMarker(lat, lng, name);
-      });
-    } else {
-      console.warn('Nessun luogo trovato.');
-    }
+    console.log("Dati ricevuti dalla API:", data);
   })
-  .catch((error) => console.error('Errore nel caricamento dei dati:', error));
+  .catch((error) => console.error("Errore nel caricamento dei dati:", error.message, error));
+
