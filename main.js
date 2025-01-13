@@ -1,3 +1,74 @@
+// Aggiungi barra di navigazione per il calcolo del percorso
+document.body.insertAdjacentHTML('beforeend', `
+  <div style="position: absolute; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; background: white; padding: 10px; border-radius: 25px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0px 2px 6px rgba(0,0,0,0.3); width: 90%; max-width: 400px;">
+    <label for="startInput" style="font-size: 14px;">Partenza</label>
+    <input id="startInput" type="text" placeholder="Inserisci indirizzo di partenza" style="width: 100%; border: none; outline: none; padding: 8px; font-size: 14px; border-radius: 25px;">
+    <label for="endInput" style="font-size: 14px;">Destinazione</label>
+    <input id="endInput" type="text" placeholder="Inserisci indirizzo di destinazione" style="width: 100%; border: none; outline: none; padding: 8px; font-size: 14px; border-radius: 25px;">
+    <button id="routeButton" style="padding: 8px 16px; background: #007bff; color: white; border: none; outline: none; cursor: pointer; border-radius: 25px; transition: background-color 0.3s ease;">Andiamo</button>
+  </div>
+`);
+
+// Effetti di mouse over sul pulsante Andiamo
+const routeButton = document.getElementById('routeButton');
+routeButton.addEventListener('mouseover', () => {
+  routeButton.style.backgroundColor = '#0056b3';
+});
+routeButton.addEventListener('mouseout', () => {
+  routeButton.style.backgroundColor = '#007bff';
+});
+
+// Inizializza il routing layer
+let routingLayer;
+
+// Funzione per calcolare il percorso
+document.getElementById('routeButton').addEventListener('click', () => {
+  const startAddress = document.getElementById('startInput').value;
+  const endAddress = document.getElementById('endInput').value;
+
+  if (!startAddress || !endAddress) {
+    alert('Inserisci sia la partenza che la destinazione.');
+    return;
+  }
+
+  const geocodeUrl = (address) => `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+
+  Promise.all([
+    fetch(geocodeUrl(startAddress)).then((res) => res.json()),
+    fetch(geocodeUrl(endAddress)).then((res) => res.json()),
+  ])
+    .then(([startData, endData]) => {
+      if (startData.length === 0 || endData.length === 0) {
+        alert('Indirizzo non trovato. Controlla gli indirizzi inseriti.');
+        return;
+      }
+
+      const startCoords = [startData[0].lat, startData[0].lon];
+      const endCoords = [endData[0].lat, endData[0].lon];
+
+      // Rimuovi il percorso precedente, se presente
+      if (routingLayer) {
+        map.removeLayer(routingLayer);
+      }
+
+      // Usa Leaflet Routing Machine per calcolare e visualizzare il percorso
+      routingLayer = L.Routing.control({
+        waypoints: [
+          L.latLng(startCoords[0], startCoords[1]),
+          L.latLng(endCoords[0], endCoords[1]),
+        ],
+        routeWhileDragging: false,
+        show: false,
+      }).addTo(map);
+
+      map.fitBounds([
+        [startCoords[0], startCoords[1]],
+        [endCoords[0], endCoords[1]],
+      ]);
+    })
+    .catch((error) => console.error('Errore nel calcolo del percorso:', error));
+});
+
 // Aggiungi barra di ricerca e filtro nella mappa
 document.body.insertAdjacentHTML('beforeend', `
   <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1000; background: white; padding: 10px; border-radius: 25px; display: flex; align-items: center; gap: 10px; box-shadow: 0px 2px 6px rgba(0,0,0,0.3);">
@@ -50,83 +121,3 @@ function addMarker(lat, lng, name, category) {
   );
   return marker;
 }
-
-// Funzione per caricare POI in base alle coordinate e categoria selezionata
-function loadPOIs(lat, lng, selectedCategory = "") {
-  const categoryFilter = selectedCategory
-    ? `node["wheelchair"="yes"]["amenity"="${selectedCategory}"]`
-    : 'node["wheelchair"="yes"]';
-
-  const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json][timeout:25];${categoryFilter}(${lat - 0.05},${lng - 0.05},${lat + 0.05},${lng + 0.05});out body;`;
-
-  fetch(overpassUrl)
-    .then((response) => response.json())
-    .then((data) => {
-      console.log("Dati ricevuti dall'Overpass API:", data);
-      map.eachLayer((layer) => {
-        if (layer instanceof L.Marker) {
-          map.removeLayer(layer);
-        }
-      });
-      const categories = new Set();
-      data.elements.forEach((element) => {
-        const lat = element.lat;
-        const lng = element.lon;
-        const name = element.tags.name || "Luogo accessibile";
-        const category = element.tags.amenity || "Non specificata";
-        categories.add(category);
-        addMarker(lat, lng, name, category);
-      });
-      populateCategories(Array.from(categories));
-    })
-    .catch((error) => console.error("Errore nel caricamento dei dati dall'Overpass API:", error));
-}
-
-// Funzione per popolare dinamicamente il filtro delle categorie
-function populateCategories(categories) {
-  const categoryFilter = document.getElementById('categoryFilter');
-  const currentSelection = categoryFilter.value;
-  categoryFilter.innerHTML = '<option value="">Tutte le categorie</option>';
-  categories.forEach((category) => {
-    categoryFilter.innerHTML += `<option value="${category}" ${currentSelection === category ? 'selected' : ''}>${category.charAt(0).toUpperCase() + category.slice(1)}</option>`;
-  });
-}
-
-// Carica i POI iniziali
-loadPOIs(45.4642, 9.1900);
-
-// Aggiungi evento per il pulsante di ricerca
-document.getElementById('searchButton').addEventListener('click', () => {
-  const address = document.getElementById('searchInput').value;
-  const categoryFilter = document.getElementById('categoryFilter').value;
-  if (!address) return alert('Inserisci un indirizzo.');
-
-  // Usa un servizio geocoding per trovare le coordinate dell'indirizzo
-  const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
-
-  fetch(geocodeUrl)
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.length === 0) return alert('Indirizzo non trovato.');
-
-      const { lat, lon } = data[0];
-      map.setView([lat, lon], 17);
-
-      loadPOIs(lat, lon, categoryFilter);
-    })
-    .catch((error) => console.error("Errore nel geocoding:", error));
-});
-
-// Aggiungi evento per il filtro delle categorie
-document.getElementById('categoryFilter').addEventListener('change', () => {
-  const categoryFilter = document.getElementById('categoryFilter').value;
-  const center = map.getCenter();
-  loadPOIs(center.lat, center.lng, categoryFilter);
-});
-
-// Aggiungi evento per il tasto Invio nella barra di ricerca
-document.getElementById('searchInput').addEventListener('keypress', (event) => {
-  if (event.key === 'Enter') {
-    document.getElementById('searchButton').click();
-  }
-});
