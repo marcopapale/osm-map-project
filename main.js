@@ -19,7 +19,7 @@ routeButton.addEventListener('mouseout', () => {
 });
 
 // Inizializza il routing layer
-let routingLayer;
+let routingControl;
 
 // Funzione per calcolare il percorso
 document.getElementById('routeButton').addEventListener('click', () => {
@@ -47,18 +47,19 @@ document.getElementById('routeButton').addEventListener('click', () => {
       const endCoords = [endData[0].lat, endData[0].lon];
 
       // Rimuovi il percorso precedente, se presente
-      if (routingLayer) {
-        map.removeLayer(routingLayer);
+      if (routingControl) {
+        map.removeControl(routingControl);
       }
 
       // Usa Leaflet Routing Machine per calcolare e visualizzare il percorso
-      routingLayer = L.Routing.control({
+      routingControl = L.Routing.control({
         waypoints: [
           L.latLng(startCoords[0], startCoords[1]),
           L.latLng(endCoords[0], endCoords[1]),
         ],
         routeWhileDragging: false,
         show: false,
+        addWaypoints: false,
       }).addTo(map);
 
       map.fitBounds([
